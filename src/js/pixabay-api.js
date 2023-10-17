@@ -3,7 +3,7 @@
 
 import axios from 'axios';
 
-export default class NewsApiService {
+export default class PixabayApi {
   constructor() {
     this.searchQuery = '';
     this.page = 1;

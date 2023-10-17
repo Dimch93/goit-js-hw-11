@@ -1,5 +1,5 @@
 import '../css/index.css';
-import NewsApiService from './pixabay-api';
+import PixabayApi from './pixabay-api';
 import { lightbox } from './simplelightbox';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
@@ -9,7 +9,7 @@ const refs = {
   loadMoreBtn: document.querySelector('.load-more'),
 };
 let isShown = 0;
-const newsApiService = new NewsApiService();
+const pixabayApi = new PixabayApi();
 
 refs.searchForm.addEventListener('submit', onSearch);
 refs.loadMoreBtn.addEventListener('click', onLoadMore);
@@ -25,31 +25,32 @@ function onSearch(element) {
   element.preventDefault();
 
   refs.galleryContainer.innerHTML = '';
-  newsApiService.query =
-    element.currentTarget.elements.searchQuery.value.trim();
-  newsApiService.resetPage();
+  pixabayApi.query = element.currentTarget.elements.searchQuery.value.trim();
+  pixabayApi.resetPage();
 
-  if (newsApiService.query === '') {
+  if (pixabayApi.query === '') {
     Notify.warning('Please, fill the main field');
     return;
   }
 
-  isShown = 0;
+  // isShown = 0;
   fetchGallery();
   onRenderGallery(hits);
 }
 
 function onLoadMore() {
-  newsApiService.incrementPage();
+  pixabayApi.incrementPage();
   fetchGallery();
 }
 
 async function fetchGallery() {
   refs.loadMoreBtn.classList.add('is-hidden');
 
-  const result = await newsApiService.fetchGallery();
-  const { hits, total } = result;
-  isShown += hits.length;
+  const result = await pixabayApi.fetchGallery();
+
+  const { hits, totalHits, total } = result;
+
+  isShown = hits.length;
 
   if (!hits.length) {
     Notify.failure(
@@ -59,17 +60,17 @@ async function fetchGallery() {
     return;
   }
 
-  onRenderGallery(hits);
-  isShown += hits.length;
-
-  if (isShown < total) {
-    Notify.success(`Hooray! We found ${total} images !!!`);
+  if (isShown < totalHits) {
+    Notify.success(`Hooray! We found ${totalHits} images !!!`);
     refs.loadMoreBtn.classList.remove('is-hidden');
   }
 
-  if (isShown >= total) {
+  onRenderGallery(hits);
+
+  if (isShown >= totalHits) {
     Notify.info("We're sorry, but you've reached the end of search results.");
   }
+  console.log(isShown);
 }
 
 function onRenderGallery(elements) {
